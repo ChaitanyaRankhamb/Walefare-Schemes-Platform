@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import connectDB from "./config/mongo.connection";
+import { errorHandler } from "./middlewares/errorHandling.middleware";
 
 // Create a new express application instance
 const app = express();
@@ -14,6 +15,9 @@ const port = process.env.PORT || 4000;
 app.get("/", (req: Request, res: Response) => {
     res.json({ message: "Welcome to the Walefare Schemes Platform!" });
 });
+
+// use the error handling middleware
+app.use(errorHandler);
 
 // Start the Express server
 app.listen(port, () => {
