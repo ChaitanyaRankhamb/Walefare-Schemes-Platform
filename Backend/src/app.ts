@@ -1,7 +1,11 @@
 import express, { Request, Response } from "express";
+import connectDB from "./config/mongo.connection";
 
 // Create a new express application instance
 const app = express();
+
+// connect the mongoDB database
+connectDB();
 
 // Set the network port
 const port = process.env.PORT || 4000;
