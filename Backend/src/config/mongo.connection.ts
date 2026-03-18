@@ -2,6 +2,8 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import { AppError } from "../Error/appError";
 
+dotenv.config(); // Load environment variables from .env file
+
 let client: any;
 let db: any;
 
