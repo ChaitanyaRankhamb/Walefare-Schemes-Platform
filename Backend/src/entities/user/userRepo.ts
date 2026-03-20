@@ -1,14 +1,16 @@
+import { AuthProvider } from "./AuthProvider";
 import { User } from "./user";
 import { UserId } from "./userId";
 
 export interface CreateUserData {
-  id: UserId;
   email: string;
   username?: string;
   avatar?: string;
   emailVerified?: boolean;
   verificationCode?: number;
+  verificationExpiry?: Date;
   isActive?: boolean;
+  providers: AuthProvider[];
 }
 
 export interface UserRepository {
@@ -18,5 +20,5 @@ export interface UserRepository {
   findUserByID(id: UserId): Promise<User | null>;
   findUserByUsername(username: string): Promise<User | null>;
   findUserByEmail(email: string): Promise<User | null>;
-  findByProvider(type: string, providerId: string): Promise<User | null>;
+  findByProvider(type: string): Promise<User | null>;
 }
