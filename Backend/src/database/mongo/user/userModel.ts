@@ -14,7 +14,8 @@ export interface UserDocument extends Document {
   username?: string;
   avatar?: string;
   emailVerified: boolean;
-  verificationCode: number;
+  verificationCode?: number;
+  verificationExpiry?: Date;
   isActive: boolean;
   providers: Provider[];
   createdAt: Date;
@@ -46,6 +47,8 @@ export const UserZodSchema = z
     emailVerified: z.boolean().default(false),
 
     verificationCode: z.number().optional(),
+
+    verificationExpiry: z.date().optional(),
 
     isActive: z.boolean().default(true),
 
@@ -95,6 +98,10 @@ const userSchema = new Schema<UserDocument>(
     verificationCode: {
       type: Number,
       index: true, // for verification
+    },
+
+    verificationExpiry: {
+      type: Date,
     },
 
     isActive: {
