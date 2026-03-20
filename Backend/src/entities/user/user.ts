@@ -2,9 +2,11 @@ import { AppError } from "../../Error/appError";
 import { AuthProvider, ProviderType } from "./AuthProvider";
 import { UserId } from "./userId";
 
-// define User as a class to use DDD (Domain-Driven-Design) architecture. To create a new user document, simply create a new instance of a User class.
 export class User {
   private providers: AuthProvider[] = [];
+
+  private verificationCode?: number;
+  private verificationExpiry?: Date;
 
   constructor(
     public readonly id: UserId,
@@ -13,14 +15,19 @@ export class User {
     private avatar?: string,
     private emailVerified: boolean = false,
     private isActive: boolean = true,
-    private verificationCode?: number,
+    providers: AuthProvider[] = [],
+    verificationCode?: number,
+    verificationExpiry?: Date,
     public readonly createdAt: Date = new Date(),
     private updatedAt: Date = new Date(),
-  ) {}
+  ) {
+    this.providers = providers;
+    this.verificationCode = verificationCode;
+    this.verificationExpiry = verificationExpiry;
+  }
 
-  // it is a method to link a provide for a user. 
   addProvider(provider: AuthProvider) {
-    const exists = this.providers.find((p) => p.type === provider.type);  // check provider type already linked or not
+    const exists = this.providers.find((p) => p.type === provider.type);
 
     if (exists) {
       throw new AppError("Provider Already Linked", 400);
@@ -38,10 +45,24 @@ export class User {
     return this.providers.some((p) => p.type === type);
   }
 
-  verifyEmail() {
-    this.emailVerified = true;
+  setVerification(code: number, expiry: Date) {
+    this.verificationCode = code;
+    this.verificationExpiry = expiry;
     this.touch();
   }
+
+  clearVerificationData(): void {
+  this.verificationCode = undefined;
+  this.verificationExpiry = undefined;
+}
+
+  isEmailVerified(): boolean {
+    return this.emailVerified;
+  }
+
+  setEmailVerified(value: boolean): void {
+  this.emailVerified = value;
+}
 
   getEmail(): string {
     return this.email;
@@ -55,16 +76,20 @@ export class User {
     return this.avatar;
   }
 
-  isEmailVerified(): boolean {
-    return this.emailVerified;
+  isUserActive(): boolean {
+    return this.isActive;
   }
 
   getVerificationCode(): number | undefined {
     return this.verificationCode;
   }
 
-  isUserActive(): boolean {
-    return this.isActive;
+  getVerificationExpiry(): Date | undefined {
+    return this.verificationExpiry;
+  }
+
+  getUpdatedAt(): Date {
+    return this.updatedAt;
   }
 
   private touch() {
