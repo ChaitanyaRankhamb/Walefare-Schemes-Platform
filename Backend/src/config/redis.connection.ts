@@ -1,9 +1,8 @@
 import { createClient } from "redis";
 
-// create a redis client with createClient method by passing url as parameter
+// create a redis client with createClient method by passing options as parameter
 const redisClient = createClient({
-  url: "redis://localhost:6381",
-  // url: "redis://redis-stack:6379"  for docker based redis connection
+  url: process.env.REDIS_URL,
 });
 
 
