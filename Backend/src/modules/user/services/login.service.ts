@@ -10,7 +10,7 @@ import redisClient from "../../../config/redis.connection";
 export const loginService = async (email: string) => {
   const user = await userRepository.findUserByEmail(email);
   if (!user) {
-    throw new AppError("Invalid credentials", 401);
+    throw new AppError("User not found with this email", 401);
   }
 
   // GENERATE TOKENS
@@ -24,9 +24,19 @@ export const loginService = async (email: string) => {
   });
 
   // SAVE REFRESH TOKEN TO REDIS (EXPIRES IN 7 DAYS)
-  await redisClient.set(`refresh:${user.id}`, refreshToken, {
-    EX: 7 * 24 * 60 * 60,
-  });
+  try {
+    await redisClient.set(`refresh:${user.id}`, refreshToken, {
+      EX: 7 * 24 * 60 * 60,
+    });
+  } catch (error: any) {
+    console.error("Redis storage error:", error);
+    if (error.message.includes("NOAUTH")) {
+      throw new AppError("Internal Server Error: Cache authentication failed. Please check Redis configuration.", 500);
+    }
+    // If it's not a NOAUTH error, we might still want to fail or just log it
+    // For production, failing is safer if session management depends on Redis
+    throw new AppError("Failed to initialize session. Please try again.", 500);
+  }
 
   return { user, accessToken, refreshToken };
 };

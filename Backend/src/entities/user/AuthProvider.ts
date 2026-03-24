@@ -13,8 +13,8 @@ export class AuthProvider {
     }
   }
 
-  static credentials(): AuthProvider {
-    return new AuthProvider("credentials", "LOCAL");
+  static credentials(email: string): AuthProvider {
+    return new AuthProvider("credentials", email);
   }
 
   static google(providerId: string): AuthProvider {

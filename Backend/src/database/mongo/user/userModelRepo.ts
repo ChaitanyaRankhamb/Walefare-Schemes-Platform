@@ -45,6 +45,8 @@ export class MongoUserRepository implements IUserRepository {
       username: data.username,
       avatar: data.avatar,
       emailVerified: data.emailVerified ?? false,
+      verificationCode: data.verificationCode,
+      verificationExpiry: data.verificationExpiry,
       isActive: data.isActive ?? true,
       providers,
     });
@@ -65,6 +67,8 @@ export class MongoUserRepository implements IUserRepository {
         username: user.getUsername(),
         avatar: user.getAvatar(),
         emailVerified: user.isEmailVerified(),
+        verificationCode: user.getVerificationCode(),
+        verificationExpriry: user.getVerificationExpiry(),
         isActive: user.isUserActive(),
         providers,
       },
@@ -81,7 +85,7 @@ export class MongoUserRepository implements IUserRepository {
     return doc ? docToUser(doc) : null;
   }
 
-  async findUserByID(id: UserId): Promise<User | null> {
+  async findUserById(id: string): Promise<User | null> {
     const doc = await UserModel.findById(id);
     return doc ? docToUser(doc) : null;
   }
@@ -94,18 +98,19 @@ export class MongoUserRepository implements IUserRepository {
   async findUserByEmail(email: string): Promise<User | null> {
     const doc = await UserModel.findOne({
       email: email.toLowerCase(),
-    })
+    });
     return doc ? docToUser(doc) : null;
   }
 
   async findByProvider(
     type: ProviderType,
+    providerId: string,
   ): Promise<User | null> {
     const doc = await UserModel.findOne({
       providers: {
-        $elemMatch: { type },
+        $elemMatch: { type, providerId },
       },
-    })
+    });
 
     return doc ? docToUser(doc) : null;
   }

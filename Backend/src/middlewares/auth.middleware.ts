@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt.utils";
 import redisClient from "../config/redis.connection";
-
+import { userRepository } from "../database/mongo/user/userModelRepo";
 
 export interface AuthRequest extends Request {
   userId?: string;
+  user?: any;
 }
 
 export const authMiddleware = async (
@@ -19,7 +20,6 @@ export const authMiddleware = async (
   }
 
   const token = authHeader.split(" ")[1];
-  console.log(token);
 
   try {
     const payload = verifyAccessToken(token as string);
@@ -28,14 +28,21 @@ export const authMiddleware = async (
       return res.status(401).json({ message: "Invalid or expired token" });
     }
 
-    // OPTIONAL: Check if token is blacklisted
+    // Check if token is blacklisted
     const isBlacklisted = await redisClient.get(`blacklist:${token}`);
 
     if (isBlacklisted) {
       return res.status(401).json({ message: "Token invalidated" });
     }
 
+    // Fetch user and attach to request
+    const user = await userRepository.findUserById(payload.userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
     req.userId = payload.userId;
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });

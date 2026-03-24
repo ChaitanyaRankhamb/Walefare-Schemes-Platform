@@ -1,35 +1,36 @@
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { AppError } from "../Error/appError";
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
-let client: any;
-let db: any;
+const MONGO_URI = process.env.MONGODB_URI!;
+
+if (!MONGO_URI) {
+  throw new AppError(
+    "MONGODB_URI is not defined in environment variables",
+    500
+  );
+}
+
+// 🔥 Cache connection (important for Next.js / Node apps)
+let isConnected = false;
 
 const connectDB = async () => {
-  if (db) return db; // reuse existing connection
+  if (isConnected) {
+    console.log("Using existing DB connection");
+    return;
+  }
 
   try {
-    if (!process.env.MONGODB_URI) {
-      throw new AppError(
-        "MONGODB_URI is not defined in environment variables",
-        500
-      )
-    }
+    const conn = await mongoose.connect(MONGO_URI);
 
-    client = new MongoClient(process.env.MONGODB_URI);
+    isConnected = conn.connections[0].readyState === 1;
 
-    await client.connect();  // it will establish the connection 
-
-    db = client.db(); // default DB from URI
-
-    console.log("MongoDB is Connected Successfully");
-
-    return db;
+    console.log("MongoDB Connected Successfully");
   } catch (error) {
     console.error("MongoDB Connection Error:", error);
-    process.exit(1); // fail fast
+    process.exit(1);
   }
 };
 

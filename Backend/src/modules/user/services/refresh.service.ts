@@ -17,7 +17,7 @@ export const refreshService = async (refreshToken: string) => {
   try {
     // VERIFY REFRESH TOKEN
     const decoded = verifyRefreshToken(refreshToken);
-    const user = await userRepository.findUserByID(decoded.userId as any);
+    const user = await userRepository.findUserById(decoded.userId as string);
 
     // CHECK IF TOKEN EXISTS IN REDIS AND MATCHES
     const storedToken = await redisClient.get(`refresh:${decoded.userId}`);

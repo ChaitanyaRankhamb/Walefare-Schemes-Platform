@@ -21,23 +21,25 @@ passport.use(
           return cb(new AppError("No email found in google profile", 500));
         }
 
-        // check user already exist with providers
-        let user = await userRepository.findByProvider("google");
+        // check user already exist with google provider ID
+        let user = await userRepository.findByProvider("google", profile.id);
 
         if (!user) {
-          // get user with emial
+          // find user with email
           user = await userRepository.findUserByEmail(email);
 
-          // if user exist with google email, add provider and update it
+          // if user exist with google email, check if google provider is linked
           if (user) {
-            user.addProvider(AuthProvider.google(profile.id));
-            await userRepository.updateUser(user);
+            if (!user.hasProvider("google")) {
+              user.addProvider(AuthProvider.google(profile.id));
+              await userRepository.updateUser(user);
+            }
           } else {
             // if not, create a new user
             user = await userRepository.createUser({
               email,
               username: profile.displayName,
-              avatar: profile.photos?.[0]?.value, // FIXED
+              avatar: profile.photos?.[0]?.value,
               emailVerified: true,
               providers: [AuthProvider.google(profile.id)],
             });

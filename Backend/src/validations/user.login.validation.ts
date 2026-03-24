@@ -7,7 +7,7 @@ const loginSchema = z.object({
 
 export const loginValidation = async (email: string) => {
   try {
-    const validatedData = loginSchema.parse(email);
+    const validatedData = loginSchema.parse({ email });
 
     return validatedData;
   } catch (error) {

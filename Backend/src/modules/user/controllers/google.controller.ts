@@ -26,16 +26,11 @@ export const googleCallbackController = async (
 
     const { accessToken, refreshToken } = await handleGoogleLoginService(user);
 
-    const response: googleResponse = {
-      status: 200,
-      message: "User Login Successfully!",
-      data: {
-        accessToken,
-        refreshToken,
-      },
-    };
-
-    return res.status(200).json(response);
+    // Set refresh token in HTTP-only cookie if desired, but for now just redirect
+    // back to the frontend with the access token in the query params.
+    // In production, consider a more secure way to pass tokens. maybe cookies!
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    return res.redirect(`${frontendUrl}/?token=${accessToken}`);
   } catch (error) {
     next(error);
   }

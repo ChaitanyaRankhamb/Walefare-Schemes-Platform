@@ -17,6 +17,8 @@ export const loginController = async (
     // validate email
     const validation = await loginValidation(email);
 
+    console.log("validated Email", validation);
+
     // take user and access token form service
     const { user, accessToken } = await loginService(validation.email);
 

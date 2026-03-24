@@ -16,7 +16,7 @@ export const logoutController = async (
     const userId = req.userId;
 
     if (userId) {
-      await logoutService(new UserId(userId));
+      await logoutService(userId);
     }
 
     res.status(200).json({

@@ -22,9 +22,9 @@ export const verifyService = async (email: string, code: number) => {
   // 3. Verify the email using the provided code
   const expiry = user.getVerificationExpiry();
   // verify expiry data
-  if (!expiry?.getTime() || Date.now() > expiry.getTime()) {
+  if (!expiry || Date.now() > expiry.getTime()) {
     throw new AppError(
-      "Verification code verify time is expired. Please resend the new verification code.",
+      "Verification code expired. Please request a new one.",
       400,
     );
   }
