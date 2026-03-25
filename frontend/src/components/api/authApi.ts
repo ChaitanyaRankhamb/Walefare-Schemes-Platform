@@ -91,6 +91,8 @@ export const getMe = async (token: string) => {
       throw new Error(data.message || "Failed to fetch user data");
     }
 
+    console.log("Returned user data", data);
+
     return data;
   } catch (error) {
     console.error("GetMe API error:", error);

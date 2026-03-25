@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useUser } from "@/context/UserContext";
+import { getAvatarColor } from "@/getAvatarColor"
+
 
 export function Navbar() {
   const { user, isLogged, logout } = useUser();
@@ -84,8 +86,11 @@ export function Navbar() {
                 <DropdownMenuTrigger>
                   <Avatar className="h-9 w-9 cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all">
                     <AvatarImage src={user?.avatar} alt={user?.username} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      <User className="h-5 w-5" />
+
+                    <AvatarFallback
+                      className={`${getAvatarColor(user?.username)} text-white`}
+                    >
+                      {user?.username?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
