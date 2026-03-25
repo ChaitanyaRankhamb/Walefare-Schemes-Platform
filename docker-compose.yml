@@ -1,0 +1,97 @@
+# defines docker compose file version
+version: "3.9"
+
+# image: official images of docker
+# container_name: custom container name
+# restart: it will restart the container. has two properties. always and unless-stopped.
+# use username & password of mongodb database from environment
+# volumes: it will prevents the data loss when the container stops
+#healthcheck is used to check the current service is running well or not test: the command docker runs to check the container health. interval: how ofter the health check runs. timeout: how long docker waits for healthcheck to finish the command before marking it as failed. retries: how many consecutive failures are allowed before marking the container as unhealthy.
+
+services:
+  # name of the container is mongodb
+  mongodb:
+    image: mongo:7
+    container_name: walefare-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: walefare
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'mongosh -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "process.exit(db.adminCommand(''ping'').ok ? 0 : 1)"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: walefare-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${welfare_schemes_platform}"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${welfare_schemes_platform}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+  # it will build the backend custom image
+    build:
+    # search Dockerfile at ./Backend
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: walefare-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./Backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/walefare?authSource=admin
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "require(''http'').get(''http://localhost:4000/'',res=>process.exit(res.statusCode===200?0:1)).on(''error'',()=>process.exit(1));"',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: walefare-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+
+volumes:
+  mongo_data:
+  redis_data:
