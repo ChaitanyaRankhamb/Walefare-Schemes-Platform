@@ -10,33 +10,33 @@ version: "3.9"
 
 services:
   # name of the container is mongodb
-  mongodb:
-    image: mongo:7 # mongo db image
-    container_name: walefare-mongodb # mongo container name
-    restart: unless-stopped
-    environment: # mongo db environment variables
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
-    volumes:
-      - mongo_data:/data/db # it will keep the previous data while the container gets restart
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'mongosh -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "process.exit(db.adminCommand(''ping'').ok ? 0 : 1)"',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+  # mongodb:
+  #   image: mongo:7 # mongo db image
+  #   container_name: walefare-mongodb # mongo container name
+  #   restart: unless-stopped
+  #   environment: # mongo db environment variables
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+  #     MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+  #   volumes:
+  #     - mongo_data:/data/db # it will keep the previous data while the container gets restart
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         'mongosh -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "process.exit(db.adminCommand(''ping'').ok ? 0 : 1)"',
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
 
   redis: # redis service definition
     image: redis/redis-stack:latest # redis stack image name
     container_name: redis-stack-walfare-schemes-platform # redis stack container name
     restart: unless-stopped # make it stop when manually stop else restart
 
-    environment:
-      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD}
+    command: 
+      redis-server --requirepass ${REDIS_PASSWORD}
 
     volumes:
       - redis_data_walefare:/data # keep the previous data when the container gets restart in this directory
@@ -58,8 +58,8 @@ services:
     container_name: walefare-backend # name of the container
     restart: unless-stopped
     depends_on: # the backend image will depends on following images. it build only after a mongo and redis images.
-      mongodb:
-        condition: service_healthy
+      # mongodb:
+        # condition: service_healthy
       redis:
         condition: service_healthy
     ports: # it is port mapping.
@@ -93,12 +93,12 @@ services:
       backend:
         condition: service_healthy # start frontend only after backend is healthy
     ports: # port mapping
-      - "3000:3000" # you can access it on localhost:3000
+      - "3001:3000" # you can access it on localhost:3000
     environment:
       NODE_ENV: production # set runtime env as production
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL} # API URL used to call backend from frontend
 
 volumes:
-  mongo_data: # store the mongo related data in mondo_data valume
+  # mongo_data: # store the mongo related data in mondo_data valume
   redis_data_walefare: # store the redis related data in redis_data_walefare valume
 

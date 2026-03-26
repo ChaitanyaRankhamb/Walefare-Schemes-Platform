@@ -2,7 +2,7 @@
  * API client for authentication related requests
  * This handles registration, login, and Google OAuth
  */
-const API_BASE_URL = process.env.NEXT_PBULIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
 
 /**
  * Handles user registration
