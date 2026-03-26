@@ -15,7 +15,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "npx tsx --env-file=.env --watch  src/app.ts"
+    "build": "tsc -p .",
+    "start": "npx tsx --env-file=../.env --watch  src/app.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -2,14 +2,18 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { AppError } from "../Error/appError";
 
-dotenv.config();
+// choose which mongo db has to use. Atlas or image. 
+dotenv.config({
+  path:
+    process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 
 const MONGO_URI = process.env.MONGODB_URI!;
 
 if (!MONGO_URI) {
   throw new AppError(
     "MONGODB_URI is not defined in environment variables",
-    500
+    500,
   );
 }
 

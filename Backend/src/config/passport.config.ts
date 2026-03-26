@@ -1,8 +1,14 @@
+import dotenv from 'dotenv';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { userRepository } from "../database/mongo/user/userModelRepo";
 import { AuthProvider } from "../entities/user/AuthProvider";
 import { AppError } from "../Error/appError";
+
+dotenv.config({
+  path:
+    process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 
 // registered google strategy in passport
 passport.use(
