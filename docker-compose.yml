@@ -11,15 +11,15 @@ version: "3.9"
 services:
   # name of the container is mongodb
   mongodb:
-    image: mongo:7
-    container_name: walefare-mongodb
+    image: mongo:7 # mongo db image
+    container_name: walefare-mongodb # mongo container name
     restart: unless-stopped
-    environment:
+    environment: # mongo db environment variables
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: walefare
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
     volumes:
-      - mongo_data:/data/db
+      - mongo_data:/data/db # it will keep the previous data while the container gets restart
     healthcheck:
       test:
         [
@@ -30,41 +30,47 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
-    image: redis:7-alpine
-    container_name: walefare-redis
-    restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${welfare_schemes_platform}"]
+  redis: # redis service definition
+    image: redis/redis-stack:latest # redis stack image name
+    container_name: redis-stack-walfare-schemes-platform # redis stack container name
+    restart: unless-stopped # make it stop when manually stop else restart
+
+    environment:
+      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD}
+
     volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${welfare_schemes_platform}", "ping"]
+      - redis_data_walefare:/data # keep the previous data when the container gets restart in this directory
+
+    ports:
+      - "6381:6379" # Redis is running on port 6381
+      - "8002:8001" # RedisInsight UI or redis stack is running on 8002
+
+    healthcheck: # it will check the health of the redis
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"] # test commands
       interval: 10s
       timeout: 5s
       retries: 10
 
-  backend:
-  # it will build the backend custom image
-    build:
-    # search Dockerfile at ./Backend
-      context: ./Backend
-      dockerfile: Dockerfile
-    container_name: walefare-backend
+  backend: # the name of the backend service
+    build: # tells your are build your own image. now pulling from docker hub
+      context: ./Backend # go to the /Backend directory
+      dockerfile: Dockerfile # serach the Dockerfile and build custome image
+    container_name: walefare-backend # name of the container
     restart: unless-stopped
-    depends_on:
+    depends_on: # the backend image will depends on following images. it build only after a mongo and redis images.
       mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
-    ports:
-      - "4000:4000"
-    env_file:
-      - ./Backend/.env
+    ports: # it is port mapping.
+      - "4000:4000" # you can access it on localhost:4000
+    env_file: # loads env variables from the following file
+      - .env # search this file at this path
     environment:
-      NODE_ENV: production
-      PORT: 4000
-      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/walefare?authSource=admin
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      NODE_ENV: production # set runtime env as production
+      PORT: 4000 # backend runs on 4000
+      MONGODB_URI: ${MONGODB_URI}
+      REDIS_URL: ${REDIS_URI}
     healthcheck:
       test:
         [
@@ -75,23 +81,24 @@ services:
       timeout: 5s
       retries: 10
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    container_name: walefare-frontend
+  frontend: # the name of the frontend service
+    build: # tells you are building your own frontend image
+      context: ./frontend # go to the /frontend directory
+      dockerfile: Dockerfile # search the Dockerfile and build custom image
+      args: # pass build-time variables to Dockerfile
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL} # this will be used inside frontend during build
+    container_name: walefare-frontend # name of the container
     restart: unless-stopped
-    depends_on:
+    depends_on: # frontend depends on backend service
       backend:
-        condition: service_healthy
-    ports:
-      - "3000:3000"
+        condition: service_healthy # start frontend only after backend is healthy
+    ports: # port mapping
+      - "3000:3000" # you can access it on localhost:3000
     environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NODE_ENV: production # set runtime env as production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL} # API URL used to call backend from frontend
 
 volumes:
-  mongo_data:
-  redis_data:
+  mongo_data: # store the mongo related data in mondo_data valume
+  redis_data_walefare: # store the redis related data in redis_data_walefare valume
+
