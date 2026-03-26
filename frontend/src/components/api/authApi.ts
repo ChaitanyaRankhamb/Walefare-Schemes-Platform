@@ -2,8 +2,7 @@
  * API client for authentication related requests
  * This handles registration, login, and Google OAuth
  */
-
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = process.env.NEXT_PBULIC_API_URL;
 
 /**
  * Handles user registration

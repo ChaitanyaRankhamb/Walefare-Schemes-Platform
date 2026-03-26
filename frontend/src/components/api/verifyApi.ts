@@ -3,7 +3,7 @@
  * This handles email verification and resending the verification code
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:4000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Verifies user email with a code

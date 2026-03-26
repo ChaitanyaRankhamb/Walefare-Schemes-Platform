@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1  dockerfile syntax version
-
 # builder (stage first)
 
 # use node js version 20 a lightweight version
@@ -49,7 +47,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Install ONLY production dependencies
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy only required build output
 
@@ -63,4 +61,4 @@ COPY --from=builder /frontend/public ./public
 EXPOSE 3000
 
 # Start Next.js in production mode
-CMD ["npx", "next", "start", "-p", "3000"]
+CMD ["npm", "start"]
